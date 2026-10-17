@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Site</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main>
+    <h1>Welcome</h1>
+    <p>Your site content goes here.</p>
+  </main>
+  <footer>
+    <p>We record your IP address when you visit, to understand traffic and keep the site secure. Records are deleted after {{ retention }} days.</p>
+  </footer>
+</body>
+</html>

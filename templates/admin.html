@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Visits</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="wide">
+    <h1>Visits</h1>
+    <p>{{ total }} stored. Showing the latest {{ rows|length }}.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Time (UTC)</th><th>IP address</th><th>Path</th><th>Browser</th></tr></thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td>{{ r.time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>{{ r.ip }}</td>
+            <td>{{ r.path }}</td>
+            <td>{{ r.user_agent }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4">No visits yet. Open the home page to create one.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+</body>
+</html>
