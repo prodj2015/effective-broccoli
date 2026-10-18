@@ -13,17 +13,34 @@
     <p>{{ total }} stored. Showing the latest {{ rows|length }}.</p>
     <div class="scroll">
       <table>
-        <thead><tr><th>Time (UTC)</th><th>IP address</th><th>Path</th><th>Browser</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Time (UTC)</th><th>IP address</th><th>Path</th>
+            <th>Device</th><th>Location</th><th>Browser</th>
+          </tr>
+        </thead>
         <tbody>
           {% for r in rows %}
           <tr>
             <td>{{ r.time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
             <td>{{ r.ip }}</td>
             <td>{{ r.path }}</td>
+            <td>
+              {% if r.device %}
+                {{ r.device.screen_w }}&times;{{ r.device.screen_h }}
+                &middot; {{ r.device.timezone }} &middot; {{ r.device.language }}
+              {% else %}&ndash;{% endif %}
+            </td>
+            <td>
+              {% if r.location %}
+                <a href="https://www.google.com/maps?q={{ r.location.lat }},{{ r.location.lon }}" target="_blank" rel="noopener noreferrer">{{ r.location.lat }}, {{ r.location.lon }}</a>
+                {% if r.location.accuracy is defined %}(&plusmn;{{ r.location.accuracy }} m){% endif %}
+              {% else %}&ndash;{% endif %}
+            </td>
             <td>{{ r.user_agent }}</td>
           </tr>
           {% else %}
-          <tr><td colspan="4">No visits yet. Open the home page to create one.</td></tr>
+          <tr><td colspan="6">No visits yet. Open the home page to create one.</td></tr>
           {% endfor %}
         </tbody>
       </table>
