@@ -12,17 +12,16 @@
     <p>Your site content goes here.</p>
 
     <section id="consent" class="banner" aria-label="Privacy choices">
-      <p>We already record your IP address. With your permission we also record basic device details (screen size, timezone, language). Sharing your precise location is optional.</p>
+      <p></p>
       <div class="actions">
-        <button id="btn-device" type="button">Accept device details</button>
-        <button id="btn-loc" type="button">Accept and share location</button>
-        <button id="btn-no" type="button" class="secondary">No thanks</button>
+        <button id="btn-accept" type="button">No thanks</button>
+        <button id="btn-no" type="button" class="secondary">Accept</button>
       </div>
       <p id="status" role="status"></p>
     </section>
   </main>
   <footer>
-    <p>Records are deleted after {{ retention }} days.</p>
+    <p></p>
   </footer>
 
   <script>
@@ -62,16 +61,14 @@
       finish("No problem. Nothing extra was recorded.");
     });
 
-    document.getElementById("btn-device").addEventListener("click", () => {
-      send({ device: deviceInfo() })
-        .then(() => finish("Thanks, device details recorded."))
-        .catch(() => finish("Something went wrong. Nothing was recorded."));
-    });
-
-    document.getElementById("btn-loc").addEventListener("click", () => {
+    document.getElementById("btn-accept").addEventListener("click", () => {
       const device = deviceInfo();
+      const failed = () => finish("Something went wrong. Nothing was recorded.");
+
       if (!navigator.geolocation) {
-        send({ device }).then(() => finish("Location isn't supported here. Device details recorded."));
+        send({ device })
+          .then(() => finish("Location isn't supported here. Device details recorded."))
+          .catch(failed);
         return;
       }
       navigator.geolocation.getCurrentPosition(
@@ -82,11 +79,11 @@
             lon: pos.coords.longitude,
             accuracy: pos.coords.accuracy
           }
-        }).then(() => finish("Thanks, location and device details recorded."))
-          .catch(() => finish("Something went wrong. Nothing was recorded.")),
+        }).then(() => finish("Location wasn't shared. Device details recorded."))
+          .catch(failed),
         () => send({ device })
           .then(() => finish("Location wasn't shared. Device details recorded."))
-          .catch(() => finish("Something went wrong. Nothing was recorded.")),
+          .catch(failed),
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
       );
     });
