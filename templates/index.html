@@ -10,9 +10,86 @@
   <main>
     <h1>Welcome</h1>
     <p>Your site content goes here.</p>
+
+    <section id="consent" class="banner" aria-label="Privacy choices">
+      <p>We already record your IP address. With your permission we also record basic device details (screen size, timezone, language). Sharing your precise location is optional.</p>
+      <div class="actions">
+        <button id="btn-device" type="button">Accept device details</button>
+        <button id="btn-loc" type="button">Accept and share location</button>
+        <button id="btn-no" type="button" class="secondary">No thanks</button>
+      </div>
+      <p id="status" role="status"></p>
+    </section>
   </main>
   <footer>
-    <p>We record your IP address when you visit, to understand traffic and keep the site secure. Records are deleted after {{ retention }} days.</p>
+    <p>Records are deleted after {{ retention }} days.</p>
   </footer>
+
+  <script>
+    const visitId = {{ visit_id|tojson }};
+    const consent = document.getElementById("consent");
+    const status = document.getElementById("status");
+    const buttons = consent.querySelectorAll("button");
+
+    function deviceInfo() {
+      return {
+        screen_w: screen.width,
+        screen_h: screen.height,
+        pixel_ratio: window.devicePixelRatio,
+        viewport_w: window.innerWidth,
+        viewport_h: window.innerHeight,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        language: navigator.language,
+        touch: navigator.maxTouchPoints > 0,
+        dark_mode: window.matchMedia("(prefers-color-scheme: dark)").matches
+      };
+    }
+
+    function send(payload) {
+      return fetch("/collect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(Object.assign({ visit_id: visitId }, payload))
+      });
+    }
+
+    function finish(message) {
+      buttons.forEach(b => b.disabled = true);
+      status.textContent = message;
+    }
+
+    document.getElementById("btn-no").addEventListener("click", () => {
+      finish("No problem. Nothing extra was recorded.");
+    });
+
+    document.getElementById("btn-device").addEventListener("click", () => {
+      send({ device: deviceInfo() })
+        .then(() => finish("Thanks, device details recorded."))
+        .catch(() => finish("Something went wrong. Nothing was recorded."));
+    });
+
+    document.getElementById("btn-loc").addEventListener("click", () => {
+      const device = deviceInfo();
+      if (!navigator.geolocation) {
+        send({ device }).then(() => finish("Location isn't supported here. Device details recorded."));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        pos => send({
+          device,
+          location: {
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
+            accuracy: pos.coords.accuracy
+          }
+        }).then(() => finish("Thanks, location and device details recorded."))
+          .catch(() => finish("Something went wrong. Nothing was recorded.")),
+        () => send({ device })
+          .then(() => finish("Location wasn't shared. Device details recorded."))
+          .catch(() => finish("Something went wrong. Nothing was recorded.")),
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      );
+    });
+  </script>
 </body>
 </html>
